@@ -61,8 +61,8 @@ __global__ void read_align(char *seq1, char *seq2, char *seq1_out, char *seq2_ou
             for(int i=1; i<L+1; i++){
               Score_Matrix[i][0].value = 0;
             }
-        //A = M[0][0];
-       //seq1_out[A] = 'Z';
+        A = Score_Matrix[0][0].value;
+        seq1_out[A] = 'Z';
 	   
  /*Compute DP matrices */
     int M_max =0, X_max, Y_max;
@@ -70,10 +70,10 @@ __global__ void read_align(char *seq1, char *seq2, char *seq1_out, char *seq2_ou
     int match_score;
     int si, sj;
 
-    for(int I = 1; I < L+1; I++){
-       for(int J = 1; J <L+1; J++){
-			  si = I + seq_i;
-			  sj = J + seq_i;
+    for(int I = 1; I <(L+1); I++){
+       for(int J = 1; J <(L+1); J++){
+	   si = I + seq_i;
+	   sj = J + seq_i;
 	   if(seq1[si] == seq2[sj])
 		match_score = match;
 	   else
@@ -83,6 +83,7 @@ __global__ void read_align(char *seq1, char *seq2, char *seq1_out, char *seq2_ou
 	   M_x = X[I-1][J-1] + match_score;
 	   M_y = Y[I-1][J-1] + match_score;
 
+                M_max = 0;
 		if(M_m >= M_x && M_m >= M_y && M_m > 0) 
 			M_max = M_m;
 		else if(M_x >= M_m && M_x >= M_y && M_x > 0)
@@ -93,39 +94,36 @@ __global__ void read_align(char *seq1, char *seq2, char *seq1_out, char *seq2_ou
 		M[I][J] =  M_max;
          
 	    Y_max = gap_extn + Y[I][J-1];
-	    if(penalty + M[I][J-1] > Y_max)
+	    if((penalty + M[I][J-1]) > Y_max)
 		Y_max = M[I][J-1] + penalty;
 
 	    Y[I][J] = Y_max;
 
 	    X_max = gap_extn + X[I-1][J];
-	    if(penalty + M[I-1][J] > X_max)
+	    if((penalty + M[I-1][J]) > X_max)
 		X_max = M[I-1][J] + penalty;
 
 	    X[I][J] = X_max;
 
+            Score_Matrix[I][J].value = 0;
+	    Score_Matrix[I][J].direction = m;
 
 	    if(X_max >= Y_max && X_max >= M_max){
-		Score_Matrix[I][J].value = X_max;
-		Score_Matrix[I][J].direction = x;
+         	Score_Matrix[I][J].value = X_max;
+	        Score_Matrix[I][J].direction = x;
 	    }
 	    else if(Y_max >= X_max && Y_max >= M_max){
 		    Score_Matrix[I][J].value = Y_max;
 		    Score_Matrix[I][J].direction = y;
 		 }
-		 else if(M_max >= X_max && M_max >= Y_max){
-			 Score_Matrix[I][J].value = M_max;
-			 Score_Matrix[I][J].direction = m;
-		 }
-     
-         
+ 
 	} 
       }
                 
-        //A = Score_Matrix[0][0].value;
-	//seq1_out[A] = 'Y';
+        A = Score_Matrix[0][0].value;
+	seq1_out[A] = 'Y';
 /*Maximum Score in SW matrix*/
-  
+  /*
 	sw_entry sw_max;
 	int val;
 
@@ -143,12 +141,12 @@ __global__ void read_align(char *seq1, char *seq2, char *seq1_out, char *seq2_ou
 				  S_I = j;
 			}
 		}
-          }
+          }*/
 	//A = Score_Matrix[0][0].value;
         //seq2_out[B] = 'W';
 	
    /*Traceback function*/
-    
+ /*  
      DP_dir SW_dir;
      char c1, c2; 
      
@@ -182,7 +180,7 @@ __global__ void read_align(char *seq1, char *seq2, char *seq1_out, char *seq2_ou
 	     }	
      
      }
-             
+   */          
 
     }
 }
